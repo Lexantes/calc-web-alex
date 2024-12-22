@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -53,35 +54,87 @@ func (a *Application) Run() error {
 		}
 		result, err := calc.Calc(text)
 		if err != nil {
-			log.Println(text, " calculation failed wit error: ", err)
+			log.Println(text, "calculation failed with error: ", err)
 		} else {
 			log.Println(text, "=", result)
 		}
 	}
 }
 
-type Request struct {
-	Expression string `json:"expression"`
-}
-
 func CalcHandler(w http.ResponseWriter, r *http.Request) {
-	request := new(Request)
-	defer r.Body.Close()
-	err := json.NewDecoder(r.Body).Decode(&request)
+	if r.Method != http.MethodPost {
+		http.Error(w, `{"error":"Wrong Method"}`, http.StatusMethodNotAllowed)
+		return
+	}
+
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, `{"error":"Invalid Body"}`, http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	var request struct {
+		Expression string `json:"expression"`
+	}
+	err = json.Unmarshal(body, &request)
+	if err != nil || request.Expression == "" {
+		http.Error(w, `{"error":"Invalid Body"}`, http.StatusBadRequest)
 		return
 	}
 
 	result, err := calc.Calc(request.Expression)
 	if err != nil {
-		fmt.Fprintf(w, "err: %s", err.Error())
-	} else {
-		fmt.Fprintf(w, "result: %f", result)
+		var errorMsg string
+		statusCode := http.StatusUnprocessableEntity
+
+		switch err {
+		case calc.ErrInvalidExpression:
+			errorMsg = "Error calculation"
+		case calc.ErrDivisionByZero:
+			errorMsg = "Division by zero"
+		case calc.ErrMismatchedParentheses:
+			errorMsg = "Mismatched parentheses"
+		case calc.ErrUnexpectedToken:
+			errorMsg = "Unexpected token"
+		case calc.ErrNotEnoughValues:
+			errorMsg = "Not enough values"
+		case calc.ErrEmptyInput:
+			errorMsg = "Empty input"
+		default:
+			errorMsg = "Error calculation"
+			statusCode = http.StatusUnprocessableEntity
+		}
+
+		http.Error(w, fmt.Sprintf(`{"error":"%s"}`, errorMsg), statusCode)
+		return
+	}
+
+	response := struct {
+		Result string `json:"result"`
+	}{
+		Result: fmt.Sprintf("%v", result),
+	}
+
+	responseJson, err := json.Marshal(response)
+	if err != nil {
+		log.Printf("Error while marshaling response: %v", err)
+		http.Error(w, `{"error":"Unknown error occurred"}`, http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write(responseJson)
+	if err != nil {
+		log.Printf("Error writing response: %v", err)
 	}
 }
 
 func (a *Application) RunServer() error {
 	http.HandleFunc("/api/v1/calculate", CalcHandler)
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, `{"error":"Not Found"}`, http.StatusNotFound)
+	})
 	return http.ListenAndServe(":"+a.config.Addr, nil)
 }

@@ -1,7 +1,6 @@
 package calc
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 	"unicode"
@@ -31,7 +30,7 @@ func Tokenize(expression string) ([]Token, error) {
 	var tokens []Token
 	var current string
 
-	for i, r := range expression {
+	for _, r := range expression {
 		switch {
 		case unicode.IsDigit(r):
 			current += string(r)
@@ -61,7 +60,7 @@ func Tokenize(expression string) ([]Token, error) {
 			tokens = append(tokens, Token{Divide, "/"})
 		case r == '(':
 			if current != "" {
-				return nil, fmt.Errorf("unexpected character: %s at position %d", current, i)
+				return nil, ErrInvalidCharacter
 			}
 			tokens = append(tokens, Token{LeftParen, "("})
 		case r == ')':
@@ -71,7 +70,7 @@ func Tokenize(expression string) ([]Token, error) {
 			}
 			tokens = append(tokens, Token{RightParen, ")"})
 		default:
-			return nil, fmt.Errorf("invalid character: %c at position %d", r, i)
+			return nil, ErrInvalidCharacter
 		}
 	}
 
@@ -115,11 +114,10 @@ func ShuntingYard(tokens []Token) ([]Token, error) {
 			}
 			operators = operators[:len(operators)-1]
 		default:
-			return nil, fmt.Errorf("unexpected token: %v", token)
+			return nil, ErrUnexpectedToken
 		}
 	}
 
-	// Добавляем оставшиеся операторы
 	for len(operators) > 0 {
 		if operators[len(operators)-1].Type == LeftParen {
 			return nil, ErrMismatchedParentheses
@@ -145,7 +143,7 @@ func EvaluateRPN(tokens []Token) (float64, error) {
 			stack = append(stack, value)
 		case Plus:
 			if len(stack) < 2 {
-				return 0, fmt.Errorf("not enough operands for +")
+				return 0, ErrNotEnoughValues
 			}
 			b := stack[len(stack)-1]
 			a := stack[len(stack)-2]
@@ -153,7 +151,7 @@ func EvaluateRPN(tokens []Token) (float64, error) {
 			stack = append(stack, a+b)
 		case Minus:
 			if len(stack) < 2 {
-				return 0, fmt.Errorf("not enough operands for -")
+				return 0, ErrNotEnoughValues
 			}
 			b := stack[len(stack)-1]
 			a := stack[len(stack)-2]
@@ -161,7 +159,7 @@ func EvaluateRPN(tokens []Token) (float64, error) {
 			stack = append(stack, a-b)
 		case Multiply:
 			if len(stack) < 2 {
-				return 0, fmt.Errorf("not enough operands for *")
+				return 0, ErrNotEnoughValues
 			}
 			b := stack[len(stack)-1]
 			a := stack[len(stack)-2]
@@ -169,7 +167,7 @@ func EvaluateRPN(tokens []Token) (float64, error) {
 			stack = append(stack, a*b)
 		case Divide:
 			if len(stack) < 2 {
-				return 0, fmt.Errorf("not enough operands for /")
+				return 0, ErrNotEnoughValues
 			}
 			b := stack[len(stack)-1]
 			a := stack[len(stack)-2]
@@ -184,7 +182,7 @@ func EvaluateRPN(tokens []Token) (float64, error) {
 	}
 
 	if len(stack) != 1 {
-		return 0, fmt.Errorf("invalid expression")
+		return 0, ErrInvalidExpression
 	}
 
 	return stack[0], nil
