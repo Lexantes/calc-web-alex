@@ -1,7 +1,6 @@
 package application
 
 import (
-	"bufio"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -37,27 +36,6 @@ type Application struct {
 func New() *Application {
 	return &Application{
 		config: ConfigFromLine(),
-	}
-}
-
-func (a *Application) Run() error {
-	for {
-		log.Println("input expression")
-		reader := bufio.NewReader(os.Stdin)
-		text, err := reader.ReadString('\n')
-		if err != nil {
-			log.Println("failed to read expression from console")
-		}
-		if text == "exit" {
-			log.Println("aplication was successfully closed")
-			return nil
-		}
-		result, err := calc.Calc(text)
-		if err != nil {
-			log.Println(text, "calculation failed with error: ", err)
-		} else {
-			log.Println(text, "=", result)
-		}
 	}
 }
 
@@ -136,5 +114,6 @@ func (a *Application) RunServer() error {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error":"Not Found"}`, http.StatusNotFound)
 	})
+	log.Printf("Server started on %s port", a.config.Addr)
 	return http.ListenAndServe(":"+a.config.Addr, nil)
 }
