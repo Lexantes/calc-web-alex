@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"calc-web-alex/internal/application"
+	"github.com/Lexantes/calc-web-alex/internal/application"
 )
 
 func sanitizeJSON(s string) string {

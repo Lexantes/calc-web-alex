@@ -19,13 +19,12 @@ const (
 	RightParen
 )
 
-// Token представляет собой токен с типом и значением
 type Token struct {
 	Type  TokenType
 	Value string
 }
 
-// Tokenize разбивает строку-выражение на токены
+// Разбиваем строку на токены
 func Tokenize(expression string) ([]Token, error) {
 	var tokens []Token
 	var current string
@@ -88,6 +87,7 @@ var precedence = map[TokenType]int{
 	Divide:   2,
 }
 
+// Преобразуем выражение из инфиксной в префиксную
 func ShuntingYard(tokens []Token) ([]Token, error) {
 	var output []Token
 	var operators []Token
@@ -129,7 +129,7 @@ func ShuntingYard(tokens []Token) ([]Token, error) {
 	return output, nil
 }
 
-// EvaluateRPN вычисляет выражение в обратной польской нотации
+// Вычисляем финальный ответ с помощью Польской нотации
 func EvaluateRPN(tokens []Token) (float64, error) {
 	var stack []float64
 

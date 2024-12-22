@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"os"
 
-	"calc-web-alex/pkg/calc"
+	"github.com/Lexantes/calc-web-alex/pkg/calc"
 )
 
 type Config struct {
