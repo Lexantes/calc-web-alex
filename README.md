@@ -29,7 +29,7 @@ cd calc-web-alex
 go run ./cmd/main.go --port 50001
 ```
 
-После `--port` можно указать желаемый порт на котором запустить сервер. По-умолчанию запускается на `30001`
+После `--port` можно указать желаемый порт на котором запустить сервер. По умолчанию запускается на `30001`
 
 ### 5. **Все работает, если вы получили такое сообщение:**
 ```Go
@@ -56,15 +56,15 @@ docker run -d --rm --name alex-calc-web -p 50001:8080 calc-web:v1
 
 ### 200 - OK
 >Все корректно работает
-![image](./img/1.png)
+![image](./img/1.PNG)
 
 ### 422 - StatusUnprocessableEntity 
 >Входные данные некорректны, возможно введены какие-то лишние символы
-![image](./img/2.png)
+![image](./img/2.PNG)
 
 ### 405 - StatusMethodNotAllowed
 > Если метод не POST
-![image](./img/3.png)
+![image](./img/3.PNG)
 
 ### 500 - StatusInternalServerError
 > В случае иной ошибки
