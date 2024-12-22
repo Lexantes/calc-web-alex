@@ -54,17 +54,17 @@ docker run -d --rm --name alex-calc-web -p 50001:8080 calc-web:v1
 
 # Статусы сервера
 
-### 200 - OK
->Все корректно работает
+## 200 - OK
+Все корректно работает
 ![image](./img/1.PNG)
 
-### 422 - StatusUnprocessableEntity 
->Входные данные некорректны, возможно введены какие-то лишние символы
+## 422 - StatusUnprocessableEntity 
+Входные данные некорректны, возможно введены какие-то лишние символы
 ![image](./img/2.PNG)
 
 ### 405 - StatusMethodNotAllowed
-> Если метод не POST
+Если метод не POST
 ![image](./img/3.PNG)
 
 ### 500 - StatusInternalServerError
-> В случае иной ошибки
+В случае иной ошибки
